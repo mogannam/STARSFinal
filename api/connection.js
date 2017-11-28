@@ -3,8 +3,8 @@
  */
 import mysql from 'mysql';
 export const connection = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'root',
-    password: 'asdf',
-    database: 'new_ssu_schema'
+    host: 'blue.cs.sonoma.edu',//'127.0.0.1',
+    user: 'mogannam',//'root',
+    password: '3596715',//'asdf',
+    database: 'mogannam'
 });

@@ -42,6 +42,35 @@ class Header extends Component {
                             Route 2
                         </NavItem>
                     </LinkContainer>
+
+                     <LinkContainer to ="/joe">
+                        <NavItem eventKey={4}>
+                            Joe test Route
+                        </NavItem>
+                    </LinkContainer>
+
+                     <LinkContainer to ="/question">
+                        <NavItem eventKey={5}>
+                            a Question test route
+                        </NavItem>
+                    </LinkContainer>
+
+                     <LinkContainer to ="/filter">
+                        <NavItem eventKey={6}>
+                            Filter Results
+                        </NavItem>
+                    </LinkContainer>
+
+                     <LinkContainer to ="/reportingFieldsRoute">
+                        <NavItem eventKey={7}>
+                            reportingFieldsRoute
+                        </NavItem>
+                    </LinkContainer>
+
+                    
+
+
+
                 </Nav>
             </div>
         )

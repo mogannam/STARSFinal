@@ -15,7 +15,7 @@ const headers = [
 
 //Object names in array
 const objectKeys = [
-    "id",
+    "ID",
     "student_fName",
     "student_lName",
     "career",
