@@ -7,8 +7,9 @@ import axios from 'axios'
 import {Table} from 'react-bootstrap'
 import {Collapse} from 'react-collapse';
 import {Checkbox, CheckboxGroup} from 'react-checkbox-group';
+import Parser from 'html-react-parser';
 
-//import ReactDOM from 'react-dom'
+import '../reportingFieldsRoute.css'
 
 
 //Table headers in array
@@ -19,7 +20,8 @@ const headers = [
     "credit_id", 
     "title",
     "q_id",
-    "Category"
+    "Category",
+    "description"
 
 ];
 
@@ -31,7 +33,8 @@ const objectKeys = [
   "credit_id", 
   "title_id",
   "q_id",
-  "category"
+  "category",
+  "description"
 ];
 
 
@@ -44,12 +47,14 @@ class filterRoute extends Component {
         this.state = {
             data: [], // will hold the data displayed to the user returned from mysql query
             titleQuestions: [], 
+            isCollapsed: {},
             
         }
 
         // an event listener that handles submitting data to filter by
         //this.handleSubmit = this.handleSubmit.bind(this);
-
+        
+        //this.collapseDescription = this.collapseDescription.bind(this);
         
         
 
@@ -87,9 +92,21 @@ class filterRoute extends Component {
             this.setState({error: err});
         else
             {
-            //console.log("initial db call string " + JSON.stringify(res.data));
-            //console.log(JSON.stringify(res.data, null, 4))
-            this.setState({data: res.data});
+            
+            var isCollapsed = {};
+            var tempDict = res.data; // get a dictionary of arrays, each array contains mysql json Dict
+            for(var key in tempDict){
+               var tempArray = tempDict[key];
+               for(var index in tempArray){
+                    var aJson = tempArray[index];
+                    var tempId = aJson["q_id"];
+                    //console.log("q_id : ",tempId);
+                    isCollapsed[tempId] = false;
+               }
+            }
+            //console.log(JSON.stringify(isCollapsed));
+
+            this.setState({data: res.data, isCollapsed: isCollapsed});
             //console.log(res.data)
             
             }
@@ -104,25 +121,23 @@ class filterRoute extends Component {
    
            
     };
-    
 
-    collapseCatFltr(event){
+
+
+collapseDescription(q_id, event){
         // collapse category filter, section
         // an event handler that allows the user to open/close the categories filter tab
+      
         event.preventDefault(); // called to prevent the default rendering of the page
                 // needed b/c otherwise it will query the DB for all the data
                 // and prevent the user from filtering.
+        //console.log("in collapse function, q_id : ", q_id);
+        const {isCollapsed} = this.state;
+        //const target = event.target;
+        isCollapsed[q_id] = !isCollapsed[q_id];
 
-        this.setState({fltrCatCollapseBool: !this.state.fltrCatCollapseBool});
-    }
-
-    /*handleFilterCategory(event){
-        const target = event.target;
-        console.log(target)  
-    }*/
-
-
-
+        this.setState({isCollapsed: isCollapsed}); 
+    } 
 
 
  
@@ -131,20 +146,6 @@ class filterRoute extends Component {
    render(){
         //Get variables from state
         const {data, error, FirstYear,secondYear, categories, titleQuestions} = this.state;
-
-        /*{
-               data.map((datum, index) => (
-                            <tr key={index}>
-                                {objectKeys.map((obj, index2) => (
-                                    <td key={index2}>
-                                        {datum[obj]}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))
-        }
-        */
-
 
 
 
@@ -172,7 +173,7 @@ class filterRoute extends Component {
                                 <th> {titleQuestions[index]["question"]} </th>
                             </tr>
                             <tr>
-                                {headers.map((head, index) => <th key={index}>{head}</th>)}
+                                {headers.map((head, index) => <th className="tableHeaderReport" key={index}>{head}</th>)}
                             </tr>
                             </thead>
                             <tbody>
@@ -185,9 +186,15 @@ class filterRoute extends Component {
                                             objectKeys.map( // loop over json dictionary indicies in order i specify
                                                 (jsonKey, index3) => (
 
-                                                <td  key={index3} >{
-                                                    arrElement[jsonKey]
-                                                }</td>
+                                                <td  key={index3} >
+                                                {jsonKey === "description" ? 
+                                                    <div>
+                                                    <button className="btn btn-primary" color="primary" onClick={this.collapseDescription.bind(this,arrElement["q_id"])} >Click for more info &#9660; </button>
+                                                    <Collapse isOpened={this.state.isCollapsed[arrElement["q_id"]]}>
+                                                      {arrElement[jsonKey]}
+                                                    </Collapse>
+                                                    </div> : arrElement[jsonKey] }
+                                                </td>
 
                                                 )
                                             )
@@ -213,6 +220,10 @@ class filterRoute extends Component {
 
 
 
+
+
+
+   
 
 
 
