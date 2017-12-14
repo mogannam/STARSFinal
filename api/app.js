@@ -48,7 +48,7 @@ router.get('/students', (req, res) =>{
         });
 
 router.get('/reporting_fields', (req, res) =>{
-            const query = "SELECT * FROM reporting_fields order by years"
+            const query = "SELECT * FROM report_credit_view order by cr_ID , question_ID  , year "
             //console.log("in /reporting_fields api.jss")
             connection.query(query, function (err, result) {
                 if (err)
@@ -65,10 +65,11 @@ router.get('/reporting_fields', (req, res) =>{
 router.get('/filter_reporting_fields', (req, res) =>{
             
             const jsonRecieved = req.query;
+            console.log(jsonRecieved);
             const filterBuilt = filterHelper.buildFilter(jsonRecieved);
             //console.log(JSON.stringify(years)); 
             //console.log("myFilter" + myFilter)
-            const query = "SELECT * FROM reporting_fields " + filterBuilt + " order by years";
+            const query = "SELECT * FROM report_credit_view " + filterBuilt + " order by cr_ID,  question_ID , year";
             console.log(" query : " + query)
             connection.query(query, function (err, result) {
                 if (err)
@@ -81,7 +82,7 @@ router.get('/filter_reporting_fields', (req, res) =>{
 
 router.get('/get_categories', (req, res) =>{
             
-            const query = "SELECT category FROM reporting_fields group by category";
+            const query = "SELECT cr_ID FROM report_fields group by cr_ID";
             console.log("query " + query)
             connection.query(query, function (err, result) {
                 if (err)
@@ -94,7 +95,7 @@ router.get('/get_categories', (req, res) =>{
 
 router.get('/title_questions', (req, res) =>{
             
-            const query = "SELECT * FROM title_questions ";
+            const query = "SELECT * FROM q_titles ";
             console.log("query " + query)
             connection.query(query, function (err, result) {
                 if (err)
@@ -110,36 +111,37 @@ router.get('/title_questions', (req, res) =>{
 
 router.get('/reporting_fields2', (req, res) =>{
             var resultDict= {}; // declare Dictionary of arrays, each nested array contains mysql dictionary elements
-            const query = "SELECT * FROM reporting_fields order by title_id"
+            const query = "select credit_info.*, area_info.area_abbr, area_info.area_title from credit_info" 
+                + " left join area_info on credit_info.area_ID = area_info.area_ID"
+                + " order by area_ID ;";
             //console.log("in /reporting_fields api.jss")
             connection.query(query, function (err, result) {
                 if (err)
                     res.send(err);
                 var keys = Object.keys(result);
+                //console.log("result keys ", keys);
                 //console.log(result);
-                for (var index = 0; index < keys.length; index++){
-                    var aKey = keys[index];
-                    console.log("index : " + index)
-                    console.log("aKey : " + aKey) 
-                    console.log("aResult : " , result[aKey.toString()]);
-                    var aResult = result[aKey.toString()];
+                
+                for (var index = 0; index < result.length; index++){
+                    
+                    var aResult = result[index];
                     //console.log("string : " + aKey)
-                    var title_id = aResult["title_id"];
-                    console.log("title_id : " , title_id);
-                    console.log("title_id typeOf : " , typeof(title_id));
-                    if(title_id === null || title_id === undefined || title_id == 'title_id')
-                        title_id = "0";
-
-                    if(title_id.toString() in resultDict){
+                    var area_ID = aResult["area_ID"];
+                    area_ID = area_ID.toString()
+                    
+                    if(area_ID === null || area_ID === undefined || area_ID == 'area_ID')
+                        area_ID = "0";
+                    
+                    if(area_ID.toString() in resultDict){
                         // if index, exists, grab the nested array & push the new value onto it
-                        resultDict[title_id].push(aResult);
+                        resultDict[area_ID].push(aResult);
 
                     }
                     else{
                         // else the index doesnt exist and the new nested array needs to be created
                         var temp = [];
                         temp.push(aResult);
-                        resultDict[title_id] = temp;
+                        resultDict[area_ID] = temp;
 
                     }
 
@@ -148,6 +150,7 @@ router.get('/reporting_fields2', (req, res) =>{
                 }
 
                 result = resultDict;
+                //console.log(result)
                 res.json(result);
             })
         });

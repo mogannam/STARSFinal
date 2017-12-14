@@ -4,6 +4,8 @@
 import React, {Component} from 'react';
 import {Nav, NavItem, PageHeader} from 'react-bootstrap';
 import {LinkContainer} from 'react-router-bootstrap'
+
+import '../header.css'
 class Header extends Component {
     constructor(props){
         super(props);
@@ -17,9 +19,16 @@ class Header extends Component {
     //Creates our header tabs for the app
     render(){
         return (
+
             <div>
+
                 {/*Page header used by bootstrap to name the app */}
-                <PageHeader>Title <small>Words to live by</small></PageHeader>
+                <img className="floatLeft" width="10%" height="10%" src={require('../images/starsdatabase5.png')} alt="Image of STARS Emblem"/>
+                <img  className="floatRight" width="15%" height="15%" src={require('../images/starsdatabase3.png')} alt="Image of STARS Emblem 2"/>
+                <img className="floatRight" width="15%" height="15%" src={require('../images/starsdatabase.jpg')} alt="Image of STARS Emblem 2"/>
+                
+                <div ><PageHeader  >SSU STARS <small>Sustainability Tracking, Assesment, & Rating System</small></PageHeader> </div>
+
                 {/*
                     Nav/NavItem used by bootstrap to create links to different routes.
                     React-router v4 uses "Link" imported from 'react-router-dom' rather
@@ -32,38 +41,17 @@ class Header extends Component {
                             Home
                         </NavItem>
                     </LinkContainer>
-                    <LinkContainer to ="/route1">
-                        <NavItem eventKey={2}>
-                            Route 1
-                        </NavItem>
-                    </LinkContainer>
-                    <LinkContainer to ="/route2">
-                        <NavItem eventKey={3}>
-                            Route 2
-                        </NavItem>
-                    </LinkContainer>
-
-                     <LinkContainer to ="/joe">
-                        <NavItem eventKey={4}>
-                            Joe test Route
-                        </NavItem>
-                    </LinkContainer>
-
-                     <LinkContainer to ="/question">
-                        <NavItem eventKey={5}>
-                            a Question test route
-                        </NavItem>
-                    </LinkContainer>
+                  
 
                      <LinkContainer to ="/filter">
-                        <NavItem eventKey={6}>
-                            Filter Results
+                        <NavItem eventKey={2}>
+                            Queries
                         </NavItem>
                     </LinkContainer>
 
                      <LinkContainer to ="/reportingFieldsRoute">
-                        <NavItem eventKey={7}>
-                            reportingFieldsRoute
+                        <NavItem eventKey={3}>
+                            Credits
                         </NavItem>
                     </LinkContainer>
 
@@ -72,6 +60,8 @@ class Header extends Component {
 
 
                 </Nav>
+                
+
             </div>
         )
     }

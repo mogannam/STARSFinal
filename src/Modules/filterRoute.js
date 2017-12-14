@@ -15,7 +15,7 @@ import {Checkbox, CheckboxGroup} from 'react-checkbox-group';
 import '../filterRoute.css'
 
 //Table headers in array
-const headers = [
+/*const headers = [
     "question" , 
     "answer", 
     "year", 
@@ -24,20 +24,59 @@ const headers = [
     "q_id",
     "Category"
 
-];
+];*/
 
-//Object names in array, used to index data returned from mysql queries
+
+// ana array of all headers the user can toggle on and off in the table displayed
+// this seperate array is similar to objectKeys, but it needs it own copy because
+// by removing elements from this array allows the designer to force what is 
+// always displayed to the user. For example removing question, makes it so
+// the user can never toggle that category on/off in the displayed table.
+// in effect forcing it to always appear on the page.
+const headerFilterOptions = [
+    "cr_ID", 
+    "area_ID",
+    "question_ID",
+    "year",
+    "question" , 
+    "answer", 
+]
+// a dictionary that maps the keys of header objectKeys, to the name displayed in the
+// table displayed to the user
+const headersOptions = {
+    "question" : "Question" , 
+    "answer": "Answer",
+    "year" : "Year", 
+    "cr_ID" : "Credit ID", 
+    "title_ID" : "Title ID",
+    "area_ID" : "Area ID",
+    "question_ID" : "Question ID"
+
+};
+
+
+
+
+//Object Key names that are a set of all keys possible used to index the 
+// returned json from the mysql query
 const objectKeys = [
+  "cr_ID",
+  "area_ID",
+  "question_ID",
+  "year", 
   "question" , 
   "answer", 
-  "years", 
-  "credit_id", 
-  "title_id",
-  "q_id",
-  "category"
+
 ];
 
 
+// used to determine what header fields should be displayed in the table to the user
+// at first all fileds should be set to true, to show all fields
+// as the user toggels fields on/off they will switch from true to false
+// TrueDictionary is a dictionary of keys with the value of true 
+// ex: //headerSelected: {"question" : true, "answer" : true, "years": true, "credit_id" : true, "title_id" : true, "q_id" : true , "category" : true}
+var tempDict = {}
+var TrueDictionary = () => {for(var index in objectKeys) tempDict[objectKeys[index]] = true; return tempDict  }
 
 
 
@@ -47,9 +86,14 @@ class filterRoute extends Component {
         this.state = {
             data: [], // will hold the data displayed to the user returned from mysql query
             categories: [], // holds the categories to filter by, obtained from mysql query
-            FirstYear : "",// I think no longer used, check before deletion
-            secondYear: "", // I think no longer used
-            fltrCatCollapseBool: false // used to control wheter to open/close filter by category drop down tab
+            FirstYear : "",
+            secondYear: "", 
+            fltrCatCollapseBool: false, // used to control wheter to open/close filter by category drop down tab
+            //headers : ["question" ,  "answer",  "years",  "credit_id",  "title_id", "q_id", "category"], // old method
+            headers : objectKeys.map( (key,index) =>  headersOptions[key] ), // used to change which headers are shown to the user
+                    // if the user toggles headers on/off -> than elemens will be pushed or removed from the array
+                    // of displayed headers.
+            headerSelected : TrueDictionary() // assign a boolean dictionary, to indicate all headers should be shown
         }
 
         // below for handling form work
@@ -71,6 +115,7 @@ class filterRoute extends Component {
         //that will be used by all calls, and appending the desires suffix.
 
         // queries mysql data before the page renders to be displayed
+        console.log("headerSelected", this.state.headerSelected )
 
 
     
@@ -83,7 +128,7 @@ class filterRoute extends Component {
             //console.log("initial db call string " + JSON.stringify(res.data));
             //console.log(JSON.stringify(res.data, null, 4))
             this.setState({data: res.data});
-            //console.log(res.data)
+            console.log(res.data)
             
             }
     })
@@ -101,10 +146,12 @@ class filterRoute extends Component {
             var tempData = res.data;
             var returnData = []
             for(var i in tempData){
-                returnData.push(tempData[i]["category"])
+                returnData.push(tempData[i]["cr_ID"])
             }
 
             //console.log(returnData);
+
+            //console.log("returnData ",returnData);
             this.setState({categories: returnData}, );
 
             
@@ -119,27 +166,7 @@ class filterRoute extends Component {
     };
     
 
-   
 
-    // ++++ needed for submitting form +++++++
-    /*handleChange(event) {
-        event.preventDefault();
-        const target = event.target;
-        var FirstYearTemp = target.value1;
-        var secondYearTemp = target.value2;
-
-        this.setState({FirstYear: FirstYearTemp, secondYear: secondYearTemp});
-        const tempState = this.state
-        FirstYearTemp = tempState.FirstYear;
-        secondYearTemp = tempState.secondYear;
-        //var textOut = "first " + FirstYearTemp + " ||second : " + secondYearTemp; 
-        //console.log(textOut);
-
-        
-        
-        //this.setState({value: event.target.value});
-
-    }*/
 
     collapseCatFltr(event){
         // an event handler that allows the user to open/close the categories filter tab
@@ -151,14 +178,62 @@ class filterRoute extends Component {
         this.setState({fltrCatCollapseBool: !this.state.fltrCatCollapseBool});
     }
 
-    /*handleFilterCategory(event){
-        const target = event.target;
-        console.log(target)  
-    }*/
+    alterHeaders(selected, event){
+        event.preventDefault(); 
+        
+        var headSelected = selected["head"];
+           
+        var target = event.target
+
+        var {headers, headerSelected } = this.state;
+        
+
+
+        headerSelected[headSelected] = !headerSelected[headSelected]
+        
+
+        /*
+        var tempHeader = []
+        if(headerSelected[headSelected]){ // if user clicked to remove header
+            for ( var index in headers){
+                var oneElement = headers[index]
+
+                console.log(oneElement)
+                if (oneElement !== headSelected)
+                    tempHeader.push(oneElement);
+            }
+            headers = tempHeader;
+        }
+        else // insert new header
+            {
+
+                headers.push(headSelected);  
+             
+            }
+            */
 
 
 
-    //handleSubmit(event) {
+
+
+        this.setState({headerSelected : headerSelected , headers : headers});
+        
+
+
+
+
+
+    }
+
+
+    pushToArray(boolValue, whatToPush, arr){
+        if(boolValue)
+            arr.push(whatToPush);
+        return arr;
+    }
+
+
+
     handleSubmit(event) { 
         // event handler that bundles up all the filtering data 
         // before  quering the database
@@ -170,17 +245,41 @@ class filterRoute extends Component {
         const target = event.target;
 
         // years the user wishes to filter by
+
+        // we can access a forms value by using its html name attribute to index it
+        // for example: target.first.value or target["first"].value 
+        // could get us the value of the first year form input value
+        // where the html name="first"
         var FirstYearTemp = target.first.value;
         var secondYearTemp = target.second.value;
+        var tempcreditIDHigh = target.creditIDHigh.value;
+        var tempcreditIDLow = target.creditIDLow.value;
 
-        // an array to hold all categories the users wnats to use in filtering
+
+        var areasSelected = []
+        this.pushToArray(target.academics.checked, "academics", areasSelected)  
+        this.pushToArray(target.engagement.checked, "engagement", areasSelected)  
+        this.pushToArray(target.operations.checked, "operations", areasSelected)  
+        this.pushToArray(target.p_and_a.checked, "p_and_a", areasSelected) 
+        this.pushToArray(target.innovation.checked, "innovation", areasSelected) 
+
+
+
+
+        // an array to hold all credit Id's the users wnats to use in filtering
         var selectedCategories = []
+        //console.log("categories ", categories)
+
         for(var i in categories){
             //console.log( categories[i] + " : "+ target[categories[i]].checked)
             // for each checked box get the boolean  to determine if its checked
-            var currentBoxBool = target[categories[i]].checked;
+            //console.log("in handle submit i ", i, "  categories[i] ", categories[i], typeof(categories[i].toString() ) )
+            var keyAsInt = parseInt(i) +1;
+            var key = "id" + keyAsInt
+          
+            var currentBoxBool = target[key].checked;
             if(currentBoxBool)
-                selectedCategories.push(categories[i]);
+                selectedCategories.push(keyAsInt);
 
         }
      
@@ -190,7 +289,9 @@ class filterRoute extends Component {
         axios.get('http://localhost:8080/filter_reporting_fields', 
                 {params: {
                     years: [FirstYearTemp,secondYearTemp,],
-                    selectedCategories : selectedCategories
+                    selectedCR_ID_Arr : selectedCategories,
+                    CreditIDRanges : [tempcreditIDLow, tempcreditIDHigh],
+                    areasSelected : areasSelected
                 }}
 
 
@@ -204,7 +305,7 @@ class filterRoute extends Component {
                 }
                 else
                     {// get data from DB & update page thru state change
-                    this.setState({data: res.data, FirstYear: FirstYearTemp, secondYear: secondYearTemp});
+                    this.setState({data: res.data, FirstYear: FirstYearTemp, secondYear: secondYearTemp, creditIDHigh: tempcreditIDHigh, creditIDLow: tempcreditIDLow});
                     var textOut = "data \n " + JSON.stringify(res.data); 
                     //console.log(textOut);
                    
@@ -229,7 +330,7 @@ class filterRoute extends Component {
 
 
         //If data is [], returns loading
-        if(!data)
+        if(!data || !categories)
             return <h1>Loading</h1>;
         // If theres an error give a message.
         if(error)
@@ -241,41 +342,67 @@ class filterRoute extends Component {
                 <div className="left"> 
                    
                     <form onSubmit={this.handleSubmit.bind(this)}>
+                        
+                            <p>Choose the data you want displayed:</p> 
+                            {headerFilterOptions.map(
+                                (head, index) => 
+                                    
+                                    <label key={head}> 
+                                        {headersOptions[head]} : <input className={(index+1)%3 === 0 ? "newlineclass" : null } type="checkbox" name={head} key={head} value={head} onClick={this.alterHeaders.bind(this, {head})} /> 
+                                        &nbsp; &nbsp;   &nbsp; &nbsp;
+
+                                    </label>
+                                    
+                                     
+                                )}
+                           
+                        <hr/><br/><br/>
+
+                          <label>
+                            Credit ID Range Range: <br/>
+                            <input  id="creditIDLow" name="creditIDLow" type="number"  />
+                            to 
+                            <input id="creditIDHigh" name="creditIDHigh" type="number" />
+                        </label>
+                        <br/>
+                        
+
                         <label>
                             Years Range: <br/>
-                            <input 
-                                id="first"
-                                name="first"
-                                type="number" 
-                                
-                                value1={this.state.FirstYear}
-                              />
+                            <input  id="first" name="first" type="number" value3={this.state.FirstYear} />
                             to 
-                            <input 
-                                id="second"
-                                name="second"
-                                type="number" 
-                                
-                                value2={this.state.secondYear}
-                                 />
+                            <input id="second" name="second" type="number" value4={this.state.secondYear}/>
                         </label>
                         <br/>
 
 
+                        <hr/><br/>
+                        <label > 
+                            Academics (credits 1-11): <input  type="checkbox" name="academics" key="academics" value="academics" /> <br/>
+                            Engagement (credits 12 - 27): <input  type="checkbox" name="engagement" key="engagement" value="engagement" /> <br/>
+                            Operations (credits  28-55): <input  type="checkbox" name="operations" key="operations" value="operations" /> <br/>
+                            P &amp; A (credits 56-70): <input  type="checkbox" name="p_and_a" key="p_and_a" value="p_and_a" /> <br/>
+                            Innovation (credits 71-74): <input  type="checkbox" name="innovation" key="innovation" value="innovation" /> <br/>
+                            &nbsp; &nbsp;   &nbsp; &nbsp;
+                        </label>
+                        <br/>
+
+
+
                         <label>
-                        <button className="btn btn-primary" color="primary" onClick={this.collapseCatFltr.bind(this)} >Filter by category &#9660; </button>
+                        <button className="btn btn-primary" color="primary" onClick={this.collapseCatFltr.bind(this)} >Filter by Credit Ids &#9660; </button>
                         <Collapse isOpened={this.state.fltrCatCollapseBool}>
                           
-                          
-                           {categories.map(
+                          {categories.map(
                                     (oneCategory, index) => 
                                         <label key={index}> 
-                                            {oneCategory} : 
-                                            <input  type="checkbox" name={oneCategory} key={index} value={oneCategory} />
+                                            {oneCategory.toString()} : 
+                                            <input  type="checkbox" name={"id"+oneCategory.toString()} key={"id"+oneCategory.toString()} value={oneCategory.toString()} />
                                              &nbsp; &nbsp;   &nbsp; &nbsp;
                                         </label>
                                     )
                           }
+                           
 
                         </Collapse>
                         </label>
@@ -297,18 +424,27 @@ class filterRoute extends Component {
                     <Table>
                     <thead>
                     <tr>
-                        {headers.map((head, index) => <th key = {index}>{head}</th>)}
+                        {objectKeys.map(
+                        (oneKey, index) =>  
+                            
+                                this.state.headerSelected[oneKey] ?  <th className={oneKey} key = {index}> {headersOptions[oneKey]}  </th>  : null  
+                           
+                        )}
                     </tr>
                     </thead>
                     <tbody>
                     {/* Map over all data indices, then objectKeys to display table */
+                   
                     data.map((datum, index) => (
                         <tr key={index}>
                         {objectKeys.map((obj, index2) => (
-                            <td key={index2}>{datum[obj]} </td>
+                            
+                                this.state.headerSelected[obj] ? <td key={index2}> {datum[obj]} </td>  : null
+                            
                         ))}
                         </tr>
-                    ))}
+                    ))
+                    }
                     </tbody>
                     </Table>
 

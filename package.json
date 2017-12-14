@@ -41,6 +41,7 @@
     "react-collapse": "^4.0.3",
     "react-dev-utils": "^4.2.1",
     "react-dom": "^16.0.0",
+    "react-footer": "0.0.0",
     "react-motion": "^0.5.2",
     "react-router-bootstrap": "^0.24.4",
     "react-router-dom": "^4.2.2",

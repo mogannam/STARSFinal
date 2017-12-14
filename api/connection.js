@@ -4,7 +4,7 @@
 import mysql from 'mysql';
 export const connection = mysql.createConnection({
     host: 'blue.cs.sonoma.edu',//'127.0.0.1',
-    user: 'mogannam',//'root',
-    password: '3596715',//'asdf',
-    database: 'mogannam'
+    user: 'csisomphou',//'root',
+    password: '004165166',//'asdf',
+    database: 'stars'
 });

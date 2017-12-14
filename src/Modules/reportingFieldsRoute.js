@@ -14,27 +14,36 @@ import '../reportingFieldsRoute.css'
 
 //Table headers in array
 const headers = [
-    "question" , 
-    "answer", 
-    "year", 
-    "credit_id", 
-    "title",
-    "q_id",
-    "Category",
-    "description"
+   "Stars Credit Refrence",
+   "Credit ID",
+   "Year",
+   "Version",
+   "Title",
+   "Points Recieved",
+   "Possible Points",
+   "Description",
+   "Responsible Party",
+   "Responsible Party\'s Title",
+   "Responsible Department",
+   
+  
 
 ];
 
 //Object names in array, used to index data returned from mysql queries
 const objectKeys = [
-  "question" , 
-  "answer", 
-  "years", 
-  "credit_id", 
-  "title_id",
-  "q_id",
-  "category",
-  "description"
+   "area_abbr",
+   "cr_ID",
+   "year",
+   "version",
+   "cr_title",
+   "yes_points",
+   "pos_points",
+   "cr_descr",
+   "resp_party",
+   "resp_title",
+   "resp_dept",
+   
 ];
 
 
@@ -79,6 +88,8 @@ class filterRoute extends Component {
             {
 
             //console.log(returnData);
+            //console.log("in reportingFieldsRoute component did mount")
+            //console.log("data is : ", returnData);
             this.setState({titleQuestions: res.data}, );
 
             
@@ -94,16 +105,18 @@ class filterRoute extends Component {
             {
             
             var isCollapsed = {};
+            
             var tempDict = res.data; // get a dictionary of arrays, each array contains mysql json Dict
-            for(var key in tempDict){
+            for(var key in tempDict){ // loop over the keys in the dict
                var tempArray = tempDict[key];
-               for(var index in tempArray){
+               for(var index in tempArray){ // for each array nested in the dictionary
                     var aJson = tempArray[index];
-                    var tempId = aJson["q_id"];
+                    var tempId = aJson["cr_ID"];
                     //console.log("q_id : ",tempId);
                     isCollapsed[tempId] = false;
                }
             }
+
             //console.log(JSON.stringify(isCollapsed));
 
             this.setState({data: res.data, isCollapsed: isCollapsed});
@@ -124,17 +137,17 @@ class filterRoute extends Component {
 
 
 
-collapseDescription(q_id, event){
+collapseDescription(cr_ID, event){
         // collapse category filter, section
         // an event handler that allows the user to open/close the categories filter tab
       
         event.preventDefault(); // called to prevent the default rendering of the page
                 // needed b/c otherwise it will query the DB for all the data
                 // and prevent the user from filtering.
-        //console.log("in collapse function, q_id : ", q_id);
+        
         const {isCollapsed} = this.state;
         //const target = event.target;
-        isCollapsed[q_id] = !isCollapsed[q_id];
+        isCollapsed[cr_ID] = !isCollapsed[cr_ID];
 
         this.setState({isCollapsed: isCollapsed}); 
     } 
@@ -170,7 +183,7 @@ collapseDescription(q_id, event){
                             <Table >
                             <thead>
                             <tr>
-                                <th> {titleQuestions[index]["question"]} </th>
+                                <th > { data[index+1][0]["area_title"] } </th>
                             </tr>
                             <tr>
                                 {headers.map((head, index) => <th className="tableHeaderReport" key={index}>{head}</th>)}
@@ -179,18 +192,20 @@ collapseDescription(q_id, event){
                             <tbody>
 
                             
-                             {data[index].map( // loop over each array 
+                             {
+
+                                data[index+1].map( // loop over each array 
                                     (arrElement, index2) => (
                                         
-                                        <tr key={index2}>{
+                                      <tr key={index2}>{
                                             objectKeys.map( // loop over json dictionary indicies in order i specify
                                                 (jsonKey, index3) => (
 
                                                 <td  key={index3} >
-                                                {jsonKey === "description" ? 
+                                                {jsonKey === "cr_descr" ? 
                                                     <div>
-                                                    <button className="btn btn-primary" color="primary" onClick={this.collapseDescription.bind(this,arrElement["q_id"])} >Click for more info &#9660; </button>
-                                                    <Collapse isOpened={this.state.isCollapsed[arrElement["q_id"]]}>
+                                                    <button className="btn btn-primary" color="primary" onClick={this.collapseDescription.bind(this,arrElement["cr_ID"])} >Click for more info &#9660; </button>
+                                                    <Collapse isOpened={this.state.isCollapsed[arrElement["cr_ID"]]}>
                                                       {arrElement[jsonKey]}
                                                     </Collapse>
                                                     </div> : arrElement[jsonKey] }
@@ -202,6 +217,8 @@ collapseDescription(q_id, event){
                                         }</tr>
                                     )
                                 )
+                              
+
                             }
                             </tbody>
                             </Table> <br/><br/><hr/> <br/><br/> </div>
