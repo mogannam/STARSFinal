@@ -5,7 +5,7 @@ import React, {Component} from 'react';
 import {Nav, NavItem, PageHeader} from 'react-bootstrap';
 import {LinkContainer} from 'react-router-bootstrap'
 
-import '../header.css'
+import '../css/header.css'
 class Header extends Component {
     constructor(props){
         super(props);
@@ -27,7 +27,7 @@ class Header extends Component {
                 <img  className="floatRight" width="15%" height="15%" src={require('../images/starsdatabase3.png')} alt="Image of STARS Emblem 2"/>
                 <img className="floatRight" width="15%" height="15%" src={require('../images/starsdatabase.jpg')} alt="Image of STARS Emblem 2"/>
                 
-                <div ><PageHeader  >SSU STARS <small>Sustainability Tracking, Assesment, & Rating System</small></PageHeader> </div>
+                <div ><PageHeader  >SSU STARS <small>Sustainability Tracking, Assessment, & Rating System</small></PageHeader> </div>
 
                 {/*
                     Nav/NavItem used by bootstrap to create links to different routes.

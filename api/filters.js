@@ -1,37 +1,40 @@
 module.exports = {
 
+    // js code to build a partial mysql query to help filter data
+    // based on user input
+
 buildFilter: function (jsonRecieved){
+
+    // because we don't know which "filters" the user will use
+    //  we need to track all of them in an array. 
+    // Each "filter" represents a partial mysql query. 
+    // Eventually each filter  gets combined thru
+    // an "AND" or an "OR" to make all the partial filters one large filter.
     var stringOfFilters = []
 
 
-   /* const yearsFilterStr = this.filterYear(jsonRecieved.years);
+  
+    // because there are currently 3 filters that deal with credit id, we need to allow
+    // all of them to be used. The three filter filter by 
+    // credit id range, predefined credit id ranges, and by a list of credit ids the user selected.
+    //To do this each of these 3 filters will be a sub filter
+    // that will be combined to become one large filter.
+    //stringOfFilters.push(this.filterCRidAndArea(jsonRecieved));
+    var tempFilter1 = this.filterCRidAndArea(jsonRecieved)
+    // only allow the filter thru if its valid,
+    this.pushToArray(tempFilter1 !== "", tempFilter1, stringOfFilters)
 
-    const catFilterStr = this.filterCategory(jsonRecieved.selectedCR_ID_Arr);
-    const creditIDFilterStr  = this.filterCreditID(jsonRecieved.CreditIDRanges);
-    //console.log("creditIDlow " + jsonRecieved.selectedCreditIDs[0])
-    console.log(creditIDFilterStr);*/
-
-    //stringOfFilters.push(this.filterCreditID(jsonRecieved.selectedCreditIDs));
-
-    const crIDandAreaFltrStr = this.filterCRidAndArea(jsonRecieved);
     
-    //stringOfFilters.push(this.filterCategory(jsonRecieved.selectedCategories));
-    //console.log(stringOfFilters);
+    // build the year filter
+    //stringOfFilters.push(this.filterYear(jsonRecieved.years));
+    var tempFilter2 = this.filterYear(jsonRecieved.years)
+    // only allow the filter thru if its valid,
+    this.pushToArray(tempFilter2 !== "", tempFilter2, stringOfFilters)
 
-    //console.log("filterCRidAndArea : ", this.filterCRidAndArea(jsonRecieved));
+    
+    var returnFilter = ""; // will hold the final filter, a combination of all filters
 
-    stringOfFilters.push(this.filterYear(jsonRecieved.years));
-    stringOfFilters.push(this.filterCRidAndArea(jsonRecieved));
-
-    var returnFilter = "";
-
-    // get only valid filters that are not ""
-    var tempArray = []
-    for(var i = 0; i < stringOfFilters.length; i++ )
-        if(stringOfFilters[i] !== "")
-            tempArray.push(stringOfFilters[i]);
-    stringOfFilters = tempArray;
-    //console.log("after removing empty filters " + stringOfFilters);
+    
 
     // if not filtering return empty string
     if(stringOfFilters.length <= 0)
@@ -45,29 +48,18 @@ buildFilter: function (jsonRecieved){
     }
     else if(stringOfFilters.length > 1 ){
         // else multiple filters exist and need to be concatenated
-        returnFilter += stringOfFilters[0];
-        //console.log("in if statement array " + stringOfFilters )
-        for(var i = 1; i < stringOfFilters.length; i++ )
+        returnFilter += stringOfFilters[0];// get first filter
+        for(var i = 1; i < stringOfFilters.length; i++ ) // loop over all filters starting at 2nd filter
             returnFilter += " and (" + stringOfFilters[i] + ")";
-
     }
-
-    //console.log("last result of filter : " + returnFilter);
-
-    /*
-    // if filter is not null append the where clause only;
-    
-    if(yearsFilterStr !== "")
-        returnFilter = "where " + yearsFilterStr
-
-    */
     
     return returnFilter;
 
 },
 
 pushToArray(boolValue, whatToPush, arr){
-        if(boolValue)
+        // conditionally push to array
+        if(boolValue) // if tru push, if false do nothing
             arr.push(whatToPush);
         return arr;
     },
@@ -76,25 +68,30 @@ pushToArray(boolValue, whatToPush, arr){
 filterCRidAndArea: function(jsonRecieved){
     // takes in the input from the form submission
     // this function builds up a set of related subfilters into one filter
+    // builds a filter that involves all credit id sub filters
+    
     var returnString =""
+    
+    // get all sub filters so that we can combined them with an or
     const creditIdString = this.filterCreditIDRange(jsonRecieved.CreditIDRanges)
     const selectCR_IDString = this.filterSelectCreditIds(jsonRecieved.selectedCR_ID_Arr)
     const areaString = this.filterArea(jsonRecieved.areasSelected)
 
 
     var arrSubFilter = []
+    // only psuh subfilters that are valid
     this.pushToArray((creditIdString != ""), creditIdString, arrSubFilter)
     this.pushToArray((selectCR_IDString != ""), selectCR_IDString, arrSubFilter)
     this.pushToArray((areaString != ""), areaString, arrSubFilter)
 
 
     if(arrSubFilter.length <= 0 || arrSubFilter === undefined)
-        return returnString = ""
+        return returnString = "" // if no filters exist return nothing
     if(arrSubFilter.length === 1)
-        returnString = arrSubFilter[0]
-    else if (arrSubFilter.length > 1){
-            returnString = arrSubFilter[0]
-            for(var i = 1; i < arrSubFilter.length; i++ ){
+        returnString = arrSubFilter[0] // if one filter exists return it
+    else if (arrSubFilter.length > 1){// else multiple filters exist
+            returnString = arrSubFilter[0] //get first filter
+            for(var i = 1; i < arrSubFilter.length; i++ ){ // loop over all other filters and combined them
                 returnString += " or " + arrSubFilter[i]
             }
 
@@ -128,11 +125,10 @@ filterArea: function(areaArray){
         returnString = areaDict[areaArray[0]]
     else if(areaArray.length > 1){ // else user filters by 2+ areas
          returnString = areaDict[areaArray[0]]
-        for(var i = 1; i < areaArray.length; i++ ){
+        for(var i = 1; i < areaArray.length; i++ ){ // combined all filters
             returnString += " or " + areaDict[areaArray[i]]
         }
     }
-    
     
     //console.log("returnString is : " + returnString);
     return "("+returnString+")"
@@ -142,6 +138,7 @@ filterArea: function(areaArray){
 
 filterCreditIDRange: function(creditIDArray){
     // takes in two id ranges a high and a low
+    // build a custom id range to filter by
     var returnString = ""
     const lowID = creditIDArray[0];
     const highID = creditIDArray[1];
@@ -168,10 +165,10 @@ filterCreditIDRange: function(creditIDArray){
 
 
 filterSelectCreditIds: function (catArray){
-    // takes in an array with strings of credit ids
+    // takes in an array with  a list of string credit ids
     var returnString = "";
 
-    if(catArray === undefined)
+    if(catArray === undefined) // if array is empty or undefined
         return returnString = ""
     if(catArray.length === 1) 
         returnString = "cr_ID = " + "'" +catArray[0] + "'";

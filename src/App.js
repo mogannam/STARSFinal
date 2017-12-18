@@ -8,7 +8,7 @@ import filterRoute from './Modules/filterRoute'
 import reportingFieldsRoute from './Modules/reportingFieldsRoute'
 
 import createHistory from "history/createBrowserHistory";
-import './App.css';
+import './css/App.css';
 
 export const history = createHistory();
 

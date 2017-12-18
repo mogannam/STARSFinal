@@ -28,14 +28,6 @@ connection.connect(function(err){
 
 const router = express.Router();
 
-router.get('/students', (req, res) =>{
-    const query = "SELECT * FROM students LIMIT 0,20"
-    connection.query(query, function (err, result) {
-        if (err)
-            res.send(err);
-        res.json(result);
-    })
-});
 
 
  router.get('/question', (req, res) =>{
@@ -66,6 +58,9 @@ router.get('/filter_reporting_fields', (req, res) =>{
             
             const jsonRecieved = req.query;
             console.log(jsonRecieved);
+
+            // alter the mysql query by building a "filter" based on user input passed as json parameter
+            // this is done in filter.js
             const filterBuilt = filterHelper.buildFilter(jsonRecieved);
             //console.log(JSON.stringify(years)); 
             //console.log("myFilter" + myFilter)
@@ -81,6 +76,7 @@ router.get('/filter_reporting_fields', (req, res) =>{
 
 
 router.get('/get_categories', (req, res) =>{
+        // get the cr_id, used in the drop down filter of filter by credit id
             
             const query = "SELECT cr_ID FROM report_fields group by cr_ID";
             console.log("query " + query)
@@ -110,7 +106,23 @@ router.get('/title_questions', (req, res) =>{
 
 
 router.get('/reporting_fields2', (req, res) =>{
-            var resultDict= {}; // declare Dictionary of arrays, each nested array contains mysql dictionary elements
+            var resultDict= {}; // declare Dictionary of arrays, each nested array contains json dictionary elements
+            // we are trying to group together data based on its areasd ID. an example of the structure:
+            /*
+                {
+                    "0" : [  {"area_ID" : 0, "area_abbr" : AC, ........ More unique json data ....}, 
+                             {"area_ID" : 0, "area_abbr" : AC, ........ More unique json data ....} 
+                          ],
+
+                    "1" : [ {"area_ID" : 1, "area_abbr" : AC, ........ More unique json data ....},
+                            {"area_ID" : 1, "area_abbr" : AC, ........ More unique json data ....}
+                           ],
+
+                     "2" : [ {"area_ID" : 2, "area_abbr" : AC, ........ More unique json data ....},
+                            {"area_ID" : 2, "area_abbr" : AC, ........ More unique json data ....}
+                           ]
+                }
+            */
             const query = "select credit_info.*, area_info.area_abbr, area_info.area_title from credit_info" 
                 + " left join area_info on credit_info.area_ID = area_info.area_ID"
                 + " order by area_ID ;";
@@ -118,27 +130,37 @@ router.get('/reporting_fields2', (req, res) =>{
             connection.query(query, function (err, result) {
                 if (err)
                     res.send(err);
+
                 var keys = Object.keys(result);
                 //console.log("result keys ", keys);
                 //console.log(result);
                 
+                // loop over the array of mysql json dictionary
                 for (var index = 0; index < result.length; index++){
                     
+                    // get one json dictionary
                     var aResult = result[index];
                     //console.log("string : " + aKey)
+
+                    //get the area_ID from the dictionary
                     var area_ID = aResult["area_ID"];
                     area_ID = area_ID.toString()
                     
+                    // if the id is invalid set it to zero so our code dosen't break
                     if(area_ID === null || area_ID === undefined || area_ID == 'area_ID')
                         area_ID = "0";
                     
+                    // we are trying to organize the data and group it together based on area id.
+                    // EX: we want all the Academics data to be grouped in one table, Engagement data in another table, and so on
+
                     if(area_ID.toString() in resultDict){
-                        // if index, exists, grab the nested array & push the new value onto it
+                        // if arear_ID, exists in my dictionary, grab the nested array & push the new json onto it
+                        // What it does is groups together related json data into an array. The array gets stored in the dictionary
                         resultDict[area_ID].push(aResult);
 
                     }
                     else{
-                        // else the index doesnt exist and the new nested array needs to be created
+                        // else the area_id doesnt exist yet and the new nested array needs to be created
                         var temp = [];
                         temp.push(aResult);
                         resultDict[area_ID] = temp;

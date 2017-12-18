@@ -6,24 +6,10 @@ import React, {Component} from 'react';
 import axios from 'axios'
 import {Table} from 'react-bootstrap'
 
-import '../header.css'
+import '../css/header.css'
 
+// a file with static home page content
 
-//Table headers in array
-const headers = [
-    "ID",
-    "First Name",
-    "Last Name",
-    "Major",
-];
-
-//Object names in array
-const objectKeys = [
-    "ID",
-    "student_fName",
-    "student_lName",
-    "career",
-];
 
 //Loads data from server and presents it in a table
 class Home extends Component{
@@ -31,42 +17,14 @@ class Home extends Component{
         super(props);
         this.state = {data: []}
     }
+
+
     //Loads the data before the component mounts
     componentWillMount(){
-        //Server is hosted at localhost:8080, I suggest holding this in single variable
-        //that will be used by all calls, and appending the desires suffix.
        
-       /* axios.get('http://localhost:8080/students').then((res, err) =>
-        {
-            if (err)
-                this.setState({error: err});
-            else
-                this.setState({data: res.data});
-        })*/
     };
 
     tempReplacecode(){
-
-        /*
-        /*
-    // temporary removed code
-
-{/* Map over all data indices, then objectKeys to display table 
-                    data.map((datum, index) => (
-                        <tr key={index}>
-                            {objectKeys.map((obj, index2) => (
-                                <td key={index2}>
-                                    {datum[obj]}
-                                </td>
-                            ))}
-                        </tr>
-                    ))} 
-
-
-    }*/
-
-        
-        
 
 
     }

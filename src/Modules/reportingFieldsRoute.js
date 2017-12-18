@@ -9,13 +9,14 @@ import {Collapse} from 'react-collapse';
 import {Checkbox, CheckboxGroup} from 'react-checkbox-group';
 import Parser from 'html-react-parser';
 
-import '../reportingFieldsRoute.css'
+import '../css/reportingFieldsRoute.css'
 
 
 //Table headers in array
+// this array represents the table headers displayed to the user on the web page
 const headers = [
    "Stars Credit Refrence",
-   "Credit ID",
+   "Credit Number",
    "Year",
    "Version",
    "Title",
@@ -33,7 +34,7 @@ const headers = [
 //Object names in array, used to index data returned from mysql queries
 const objectKeys = [
    "area_abbr",
-   "cr_ID",
+   "cr_num",
    "year",
    "version",
    "cr_title",
@@ -58,62 +59,62 @@ class filterRoute extends Component {
             titleQuestions: [], 
             isCollapsed: {},
             
-        }
-
-        // an event listener that handles submitting data to filter by
-        //this.handleSubmit = this.handleSubmit.bind(this);
-        
-        //this.collapseDescription = this.collapseDescription.bind(this);
-        
-        
+        }  
 
     }
 
-       //Loads the data before the component mounts
-    
-    
+       
+  //Loads the data before the component mounts 
     componentWillMount(){ // componentWillMount
-        //Server is hosted at localhost:8080, I suggest holding this in single variable
-        //that will be used by all calls, and appending the desires suffix.
-
-        // queries mysql data before the page renders to be displayed
-
-
-    // get a Dictionary of arrays, each nested array contains mysql dictionary elements
+        
+    // get a Dictionary of arrays, each nested array contains json dictionary elements
     axios.get('http://localhost:8080/title_questions').then((res, err) =>
     {// get categories to fill the filter menu with categories
         if (err)
             this.setState({error: err});
         else
             {
-
-            //console.log(returnData);
-            //console.log("in reportingFieldsRoute component did mount")
-            //console.log("data is : ", returnData);
             this.setState({titleQuestions: res.data}, );
-
-            
             }
     })
 
 
     axios.get('http://localhost:8080/reporting_fields2').then((res, err) =>
-    { // get all table data before page loads (without filtering)
+    { // get all table data before page loads 
         if (err)
             this.setState({error: err});
         else
             {
+              // the result retuned from api is formatted as so :
+              // we are trying to group together data based on its areasd ID. an example of the structure:
+            /*
+                {
+                    "0" : [  {"area_ID" : 0, "area_abbr" : AC, ........ More unique json data ....}, 
+                             {"area_ID" : 0, "area_abbr" : AC, ........ More unique json data ....} 
+                          ],
+
+                    "1" : [ {"area_ID" : 1, "area_abbr" : AC, ........ More unique json data ....},
+                            {"area_ID" : 1, "area_abbr" : AC, ........ More unique json data ....}
+                           ],
+
+                     "2" : [ {"area_ID" : 2, "area_abbr" : AC, ........ More unique json data ....},
+                            {"area_ID" : 2, "area_abbr" : AC, ........ More unique json data ....}
+                           ]
+                }
+            */
+            var isCollapsed = {};// a dictionary of booleans. The booleans will be used to determine
+                  // if thw description element should have an open/ closed dropdown.
             
-            var isCollapsed = {};
-            
-            var tempDict = res.data; // get a dictionary of arrays, each array contains mysql json Dict
+
+            // this for loop is just initializing a boolean dictionary to figure out howmany description drop downs will exist.
+            var tempDict = res.data; // get a dictionary of arrays, each array contains mysql json 
             for(var key in tempDict){ // loop over the keys in the dict
-               var tempArray = tempDict[key];
+               var tempArray = tempDict[key]; // get the array of json dictionarys
                for(var index in tempArray){ // for each array nested in the dictionary
-                    var aJson = tempArray[index];
-                    var tempId = aJson["cr_ID"];
+                    var aJson = tempArray[index]; // get one json value
+                    var tempId = aJson["cr_ID"]; // get the cr_ID from the json 
                     //console.log("q_id : ",tempId);
-                    isCollapsed[tempId] = false;
+                    isCollapsed[tempId] = false; // initialize the boolean dictionary
                }
             }
 
@@ -138,17 +139,16 @@ class filterRoute extends Component {
 
 
 collapseDescription(cr_ID, event){
-        // collapse category filter, section
-        // an event handler that allows the user to open/close the categories filter tab
+        // collapse description drop down
+        // an event handler that allows the user to open/close the description  drop down
       
         event.preventDefault(); // called to prevent the default rendering of the page
                 // needed b/c otherwise it will query the DB for all the data
                 // and prevent the user from filtering.
         
-        const {isCollapsed} = this.state;
+        const {isCollapsed} = this.state; // get dictionary of all boolean values controlling the dropdown contion
         //const target = event.target;
-        isCollapsed[cr_ID] = !isCollapsed[cr_ID];
-
+        isCollapsed[cr_ID] = !isCollapsed[cr_ID]; // update the boolean dictionary, because the user toggled it
         this.setState({isCollapsed: isCollapsed}); 
     } 
 
@@ -173,19 +173,23 @@ collapseDescription(cr_ID, event){
 
             <div>
 
-                <div className="questions">
+                <div className="bodyClass">
                     
-                   {
+                   { /* loop over the keys to the dictionary. 
+                    The keys represent the area_ID. Remeber we are trying to group togehter data with the same area_ID.*/
                      Object.keys(data).map( 
-                        (key, index) => (  // loop over dictionary of arrays
+                        (key, index) => (  // loop over dictionary keys, generate the table headers for each area
 
                             <div key={index}>
                             <Table >
                             <thead>
                             <tr>
-                                <th > { data[index+1][0]["area_title"] } </th>
+                               
+                              
+                                <th > {  data[index+1][0]["area_title"] } </th>
                             </tr>
                             <tr>
+                                
                                 {headers.map((head, index) => <th className="tableHeaderReport" key={index}>{head}</th>)}
                             </tr>
                             </thead>
@@ -193,15 +197,16 @@ collapseDescription(cr_ID, event){
 
                             
                              {
-
-                                data[index+1].map( // loop over each array 
+                               
+                                
+                                data[index+1].map( // loop over each dictionary, get an array of json elements
                                     (arrElement, index2) => (
                                         
-                                      <tr key={index2}>{
-                                            objectKeys.map( // loop over json dictionary indicies in order i specify
+                                      <tr key={index2}>{ // loop over objectKeys, for each array access json data with the keys in objectKeys
+                                            objectKeys.map( // for each key insert its value into a new tr
                                                 (jsonKey, index3) => (
 
-                                                <td  key={index3} >
+                                                <td  key={index3} >  
                                                 {jsonKey === "cr_descr" ? 
                                                     <div>
                                                     <button className="btn btn-primary" color="primary" onClick={this.collapseDescription.bind(this,arrElement["cr_ID"])} >Click for more info &#9660; </button>
@@ -225,6 +230,7 @@ collapseDescription(cr_ID, event){
                             
                             
                         )
+                   
                     )}
                     
 
